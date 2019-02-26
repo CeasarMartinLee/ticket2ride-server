@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import {createKoaServer} from 'routing-controllers'
+import {createKoaServer, BadRequestError} from 'routing-controllers'
 import PageController from './pages/controller'
 import setupDb from './db'
 import UserController from './users/controller'
@@ -8,9 +8,11 @@ import EventController from './events/controller'
 import TicketController from './events/controller'
 import {Action} from 'routing-controllers'
 import {verify} from './jwt'
+import User from './users/entity';
 
 
 const app = createKoaServer({
+  cors: true,
   controllers: [
     PageController,
     UserController,
@@ -22,9 +24,25 @@ const app = createKoaServer({
     const header: string = action.request.headers.authorization
     if (header && header.startsWith('Bearer ')) {
       const [ , token ] = header.split(' ')
-      return !!(token && verify(token))
-    }
+      try {
+        return !!(token && verify(token))
+      }
+      catch (e) {
+        throw new BadRequestError(e)
+      }    }
     return false
+  },
+  currentUserChecker: async (action: Action) => {
+    const header: string = action.request.headers.authorization
+    if (header && header.startsWith('Bearer ')) {
+      const [ , token ] = header.split(' ')
+      if (token) {
+        const userId = verify(token).data.id;
+        const user = await User.findOne(userId);
+        return user
+      }
+    }
+    return undefined
   }
 })
 

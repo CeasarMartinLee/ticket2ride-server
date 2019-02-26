@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm'
 import { BaseEntity } from 'typeorm/repository/BaseEntity'
-import { IsString, IsDate } from 'class-validator'
+import { IsString } from 'class-validator'
 import Ticket from '../tickets/entity'
 import User from '../users/entity'
 
@@ -22,13 +22,13 @@ export default class Event extends BaseEntity {
   @Column('text', { nullable: false })
   logo: string;
 
-  @IsDate()
+  // @IsDate()
   @Column('date', { nullable: false })
-  startDate: Date;
+  startDate: string;
 
-  @IsDate()
+  // @IsDate()
   @Column('date', { nullable: false })
-  endDate: Date;
+  endDate: string;
 
   @OneToMany(_ => Ticket, tickets => tickets.event)
   tickets: Ticket;

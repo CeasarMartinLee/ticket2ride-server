@@ -15,7 +15,7 @@ class AuthenticatePayload {
   @JsonController()
   export default class LoginController {
   
-    @Post('/logins')
+    @Post('/login')
     async authenticate(
       @Body() {email, password}: AuthenticatePayload
     ) {

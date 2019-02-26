@@ -21,6 +21,7 @@
     "@types/koa-router": "^7.0.39",
     "bcrypt": "^3.0.4",
     "jsonwebtoken": "^8.4.0",
+    "kcors": "^2.2.2",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-multer": "^1.0.2",

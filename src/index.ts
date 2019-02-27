@@ -5,7 +5,7 @@ import setupDb from './db'
 import UserController from './users/controller'
 import LoginController from './logins/controller'
 import EventController from './events/controller'
-import TicketController from './events/controller'
+import TicketController from './tickets/controller'
 import {Action} from 'routing-controllers'
 import {verify} from './jwt'
 import User from './users/entity';

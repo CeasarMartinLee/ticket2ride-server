@@ -1,44 +1,46 @@
-import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError } from 'routing-controllers'
+import { JsonController, Get, Param, Body, Post, HttpCode, CurrentUser} from 'routing-controllers'
 import Comment from './entity'
+import Ticket from '../tickets/entity'
+import User from '../users/entity'
 
 
 @JsonController()
 export default class CommentController {
 
     // @Authorized()
-    @Get('/comments/:id')
-    getComment(
-        @Param('id') id: number
+    @Get('/events/:event_id/tickets/:ticket_id/comments')
+    async getCommentsPerTicket(
+        @Param('ticket_id') ticket_id: number
     ) {
-        return Comment.findOne(id)
-    }
-
-    // @Authorized()
-    @Get('/comments')
-    async allcomments() {
-        const comments = await Comment.find()
+        const ticket = await Ticket.findOne(ticket_id)
+        const comments = await Comment.find({ relations: ['user'], where: { ticket: ticket } })
         return { comments }
     }
-
-
-    // @Authorized()
-    @Put('/comments/:id')
-    async updateComment(
-        @Param('id') id: number,
-        @Body() update: Partial<Comment>
-    ) {
-        const comment = await Comment.findOne(id)
-        if (!comment) throw new NotFoundError('Cannot find comment')
-
-        return Comment.merge(comment, update).save()
-    }
+    // async getCommentsPerTicket() {
+    //     const comments = await Comment.find()
+    //     return { comments }
+    // }
 
     // @Authorized()
-    @Post('/comments')
+    // @Post('/comments')
+    // @HttpCode(201)
+    // createComment(
+    //     @Body() comment: Comment
+    // ) {
+    //     return comment.save()
+    // }
+
+    // @Authorized()
+    @Post('/events/:event_id/tickets/:ticket_id/comments')
     @HttpCode(201)
-    createComment(
-        @Body() comment: Comment
+    async createComment(
+      @Param('ticket_id') ticketId: number,
+      @CurrentUser() user: User,
+      @Body() data: Comment
     ) {
-        return comment.save()
+      const { comment } = data;
+      const ticket = await Ticket.findOne(ticketId);  
+      const newComment = await Comment.create({comment, ticket, user}).save();
+      return newComment;
     }
 }

@@ -6,6 +6,7 @@ import UserController from './users/controller'
 import LoginController from './logins/controller'
 import EventController from './events/controller'
 import TicketController from './tickets/controller'
+import CommentController from './comments/controller'
 import {Action} from 'routing-controllers'
 import {verify} from './jwt'
 import User from './users/entity';
@@ -18,7 +19,8 @@ const app = createKoaServer({
     UserController,
     LoginController,
     EventController,
-    TicketController
+    TicketController,
+    CommentController
   ],
   authorizationChecker: (action: Action) => {
     const header: string = action.request.headers.authorization

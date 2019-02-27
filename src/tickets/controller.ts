@@ -35,12 +35,21 @@ export default class TicketController {
     }
 
     // @Authorized()
-    @Get('/tickets/:id')
+    @Get('/events/:event_id/tickets/:ticket_id')
     Ticket(
-        @Param('id') id: number
+        // @Param('event_id') event_id: number,
+        @Param('ticket_id') ticket_id: number
     ) {
-        return Ticket.findOne(id)
+        return Ticket.findOne(ticket_id, {relations: ['user','event']})
     }
+
+        // @Authorized()
+        // @Get('/tickets/:id')
+        // Ticket(
+        //     @Param('id') id: number
+        // ) {
+        //     return Ticket.findOne(id)
+        // }
 
     // @Authorized()
     @Get('/tickets')

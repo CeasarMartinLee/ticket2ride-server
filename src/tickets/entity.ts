@@ -24,6 +24,12 @@ export default class Ticket extends BaseEntity {
   @Column('text', { nullable: true })
   picture: string;
 
+  @Column('timestamp', { nullable: false })
+  dateCreated: Date
+
+  @Column('decimal', { nullable: true, scale: 2, default: 0 })
+  risk: number
+
   @ManyToOne(_ => User, user => user.tickets)
   user: User;
 

@@ -1,6 +1,8 @@
 import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser } from 'routing-controllers'
 import Event from './entity'
-import User from '../users/entity';
+import User from '../users/entity'
+// import {MoreThan} from "typeorm"
+import { getRepository } from 'typeorm'
 
 
 @JsonController()
@@ -9,7 +11,14 @@ export default class EventController {
     // @Authorized()
     @Get('/events')
     async allEvents() {
-        const events = await Event.find()
+        const dateToday = new Date()
+        const dateTodayWithoutTime = dateToday.getFullYear()+'/'+(dateToday.getMonth()+1)+'/'+dateToday.getDate()
+        //find in typeorm does not support more than and equal to.  Use querybuilder
+        // const events = await Event.find({where: {endDate : MoreThan(dateTodayWithoutTime)}})
+        const events = await getRepository(Event)
+            .createQueryBuilder('event')
+            .where('event.endDate >= :date', { date: dateTodayWithoutTime })
+            .getMany()
         return { events }
     }
 

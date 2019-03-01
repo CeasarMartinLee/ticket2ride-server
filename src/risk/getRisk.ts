@@ -51,6 +51,9 @@ export default async function getRisk(currentTicket,allTickets,userId,event_id) 
     if (currentTicket!.risk < 5) currentTicket!.risk = 5
     if (currentTicket!.risk > 95) currentTicket!.risk = 95
 
+    currentTicket!.risk = Math.round(currentTicket!.risk)
+    await currentTicket!.save()
+
     return currentTicket!.risk
   }
   

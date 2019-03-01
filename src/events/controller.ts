@@ -17,7 +17,7 @@ export default class EventController {
         // const events = await Event.find({where: {endDate : MoreThan(dateTodayWithoutTime)}})
         const events = await getRepository(Event)
             .createQueryBuilder('event')
-            .where('event.endDate >= :date', { date: dateTodayWithoutTime })
+            .where('event.endDate >= :date',{ date: dateTodayWithoutTime })
             .getMany()
         return { events }
     }

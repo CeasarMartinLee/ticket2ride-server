@@ -1,6 +1,5 @@
 import 'reflect-metadata'
 import {createKoaServer, BadRequestError} from 'routing-controllers'
-import PageController from './pages/controller'
 import setupDb from './db'
 import UserController from './users/controller'
 import LoginController from './logins/controller'
@@ -15,7 +14,6 @@ import User from './users/entity';
 const app = createKoaServer({
   cors: true,
   controllers: [
-    PageController,
     UserController,
     LoginController,
     EventController,

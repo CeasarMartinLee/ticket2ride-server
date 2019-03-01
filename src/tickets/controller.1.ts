@@ -3,7 +3,6 @@ import Ticket from './entity'
 import Event from '../events/entity'
 import User from '../users/entity'
 import Comment from '../comments/entity'
-import getRisk from '../risk/getRisk'
 
 
 @JsonController()
@@ -22,25 +21,20 @@ export default class TicketController {
         return { tickets }
     }
 
-
+  
     // @Authorized()
     @Post('/events/:eventId/tickets')
     @HttpCode(201)
     async createTicket(
-        @Param('eventId') eventId: number,
-        @CurrentUser() user: User,
-        @Body() ticket: Ticket
+      @Param('eventId') eventId: number,
+      @CurrentUser() user: User,
+      @Body() ticket: Ticket
     ) {
-        let { price, description, picture, risk, dateCreated } = ticket;
-        dateCreated = new Date()
-        const event = await Event.findOne(eventId);
-        const newTicket = await Ticket.create({ description, price, picture, event, user, dateCreated, risk }).save()
-        const allTickets = await Ticket.find({ relations: ['user'] })
-        const userId = newTicket!.user.id
-
-        getRisk(newTicket, allTickets, userId, eventId)
-
-        return newTicket;
+      let { price, description, picture, risk, dateCreated } = ticket;
+      dateCreated = new Date()
+      const event = await Event.findOne(eventId); 
+      const newTicket = await Ticket.create({description, price, picture, event, user, dateCreated, risk}).save();
+      return newTicket;
     }
 
     // @Post('/events/:eventId/tickets')
@@ -62,23 +56,23 @@ export default class TicketController {
         // @Param('event_id') event_id: number,
         @Param('ticket_id') ticket_id: number
     ) {
-        return Ticket.findOne(ticket_id, { relations: ['user', 'event'] })
+        return Ticket.findOne(ticket_id, {relations: ['user','event']})
     }
 
-
+    
     @Get('/events/:event_id/tickets/:ticket_id/risk')
     async getRiskPerTicket(
-        @Param('event_id') event_id: number,
-        @Param('ticket_id') ticket_id: number
+                @Param('event_id') event_id: number,
+                @Param('ticket_id') ticket_id: number
     ) {
-        const currentTicket = await Ticket.findOne(ticket_id, { relations: ['user'] });
+      const currentTicket = await Ticket.findOne(ticket_id, { relations: ['user'] });
         // console.log(ticket, '<===============')
         const userId = currentTicket!.user.id
         const allTickets = await Ticket.find({ relations: ['user'] })
         // console.log(allTickets)
         currentTicket!.risk = 0
         //if the ticket is the only ticket of the author, add 10%
-        const countAuthorTickets =
+        const countAuthorTickets = 
             allTickets
                 .map(ticket => (ticket.user))
                 .map(user => (user.id === userId))
@@ -89,19 +83,19 @@ export default class TicketController {
 
         // average ticket price for event = sum of all prices for event / number of tickets for event
         const event = await Event.findOne(event_id)
-        const allTicketsForEvent = await Ticket.find({ where: { event: event } })
+        const allTicketsForEvent =  await Ticket.find({where: { event: event }})
         const totalPrice = allTicketsForEvent.reduce((acc, current) => acc + current.price, 0)
         const averageTicketPrice = totalPrice / allTicketsForEvent.length
-
+        
         //if a ticket is X% cheaper than the average price, add X% to the risk
         if (averageTicketPrice > currentTicket!.price) {
-            currentTicket!.risk += (1 - (currentTicket!.price / averageTicketPrice)) * 100
-            //if a ticket is X% more expensive than the average price, deduct X% from the risk, with a maximum of 10% deduction
+            currentTicket!.risk += (1 - (currentTicket!.price/averageTicketPrice)) * 100
+        //if a ticket is X% more expensive than the average price, deduct X% from the risk, with a maximum of 10% deduction
         } else if (averageTicketPrice < currentTicket!.price) {
-            if ((((currentTicket!.price / averageTicketPrice) - 1) * 100) > 10) {
+            if ((((currentTicket!.price/averageTicketPrice) - 1) * 100) > 10) {
                 currentTicket!.risk -= 10
             } else {
-                currentTicket!.risk -= ((currentTicket!.price / averageTicketPrice) - 1) * 100
+                currentTicket!.risk -= ((currentTicket!.price/averageTicketPrice) - 1) * 100
             }
         }
 
@@ -114,7 +108,7 @@ export default class TicketController {
         }
 
         // if there are >3 comments on the ticket, add 5% to the risk
-        const commentsInTicket = await Comment.find({ where: { ticket: currentTicket } })
+        const commentsInTicket = await Comment.find({where: { ticket: currentTicket }})
         if (commentsInTicket.length > 3) {
             currentTicket!.risk += 5
         }
@@ -123,14 +117,13 @@ export default class TicketController {
         if (currentTicket!.risk < 5) currentTicket!.risk = 5
         if (currentTicket!.risk > 95) currentTicket!.risk = 95
 
-        currentTicket!.risk = Math.round(currentTicket!.risk)
         await currentTicket!.save()
 
 
 
-        return currentTicket!.risk
+        return Math.round(currentTicket!.risk)
     }
-
+    
 
     // @Authorized()
     @Get('/tickets')

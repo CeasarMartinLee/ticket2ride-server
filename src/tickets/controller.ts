@@ -1,4 +1,4 @@
-import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser } from 'routing-controllers'
+import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser, ForbiddenError } from 'routing-controllers'
 import Ticket from './entity'
 import Event from '../events/entity'
 import User from '../users/entity'
@@ -131,26 +131,33 @@ export default class TicketController {
         return currentTicket!.risk
     }
 
-
     // @Authorized()
-    @Get('/tickets')
-    async allTickets() {
-        const tickets = await Ticket.find()
-        return { tickets }
-    }
-
-
-    // @Authorized()
-    @Put('/tickets/:id')
+    @Put('/events/:event_id/tickets/:ticket_id')
     async updateTicket(
-        @Param('id') id: number,
-        @Body() update: Partial<Ticket>
+        // @Param('event_id') event_id: number,
+        @Param('ticket_id') ticket_id: number,
+        @Body() update: Partial<Ticket>,
+        @CurrentUser() user: User
     ) {
-        const ticket = await Ticket.findOne(id)
+        console.log(update,'update<===============')
+        console.log(ticket_id,'update<===============')
+
+        // const event = await Event.findOne(event_id)
+        const ticket = await Ticket.findOne(ticket_id, { relations: ['user', 'event']})
         if (!ticket) throw new NotFoundError('Cannot find ticket')
+        if(ticket.user.id !== user.id) throw new ForbiddenError ('You have insufficent rights to edit a ticket')
 
         return Ticket.merge(ticket, update).save()
     }
+
+
+    // @Authorized()
+    // @Get('/tickets')
+    // async allTickets() {
+    //     const tickets = await Ticket.find()
+    //     return { tickets }
+    // }
+
 
     // @Authorized()
     // @Post('/tickets')

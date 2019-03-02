@@ -1,4 +1,4 @@
-import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser, ForbiddenError } from 'routing-controllers'
+import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser, ForbiddenError, Authorized, Delete } from 'routing-controllers'
 import Ticket from './entity'
 import Event from '../events/entity'
 import User from '../users/entity'
@@ -42,19 +42,6 @@ export default class TicketController {
 
         return newTicket;
     }
-
-    // @Post('/events/:eventId/tickets')
-    // @HttpCode(201)
-    // async createTicket(
-    //   @Param('eventId') eventId: number,
-    //   @CurrentUser() user: User,
-    //   @Body() ticket: Ticket
-    // ) {
-    //   const { price, description, picture } = ticket;
-    //   const event = await Event.findOne(eventId);  
-    //   const newTicket = await Ticket.create({description, price, picture, event, user}).save();
-    //   return newTicket;
-    // }
 
     // @Authorized()
     @Get('/events/:event_id/tickets/:ticket_id')
@@ -131,7 +118,7 @@ export default class TicketController {
         return currentTicket!.risk
     }
 
-    // @Authorized()
+    @Authorized()
     @Put('/events/:event_id/tickets/:ticket_id')
     async updateTicket(
         // @Param('event_id') event_id: number,
@@ -139,16 +126,26 @@ export default class TicketController {
         @Body() update: Partial<Ticket>,
         @CurrentUser() user: User
     ) {
-        console.log(update,'update<===============')
-        console.log(ticket_id,'update<===============')
-
-        // const event = await Event.findOne(event_id)
         const ticket = await Ticket.findOne(ticket_id, { relations: ['user', 'event']})
+
         if (!ticket) throw new NotFoundError('Cannot find ticket')
-        if(ticket.user.id !== user.id) throw new ForbiddenError ('You have insufficent rights to edit a ticket')
+        if(user.roles === "admin") {
+            return Ticket.merge(ticket, update).save()
+        } else if(ticket.user.id !== user.id) {
+            throw new ForbiddenError ('You have insufficent rights to edit a ticket')
+        }
 
         return Ticket.merge(ticket, update).save()
     }
+
+    @Authorized("admin")
+    @Delete('/tickets/:id')
+    async deleteTicket(
+        @Param('id') id: number
+    ) {
+        return Ticket.delete(id)
+    }
+}
 
 
     // @Authorized()
@@ -167,4 +164,3 @@ export default class TicketController {
     // ) {
     //     return ticket.save()
     // }
-}

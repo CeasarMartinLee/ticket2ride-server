@@ -1,4 +1,4 @@
-import { JsonController, Get, Param, Body, Post, HttpCode, CurrentUser} from 'routing-controllers'
+import { JsonController, Get, Param, Body, Post, HttpCode, CurrentUser, Authorized, Delete} from 'routing-controllers'
 import Comment from './entity'
 import Ticket from '../tickets/entity'
 import User from '../users/entity'
@@ -16,19 +16,6 @@ export default class CommentController {
         const comments = await Comment.find({ relations: ['user'], where: { ticket: ticket } })
         return { comments }
     }
-    // async getCommentsPerTicket() {
-    //     const comments = await Comment.find()
-    //     return { comments }
-    // }
-
-    // @Authorized()
-    // @Post('/comments')
-    // @HttpCode(201)
-    // createComment(
-    //     @Body() comment: Comment
-    // ) {
-    //     return comment.save()
-    // }
 
     // @Authorized()
     @Post('/events/:event_id/tickets/:ticket_id/comments')
@@ -42,5 +29,13 @@ export default class CommentController {
       const ticket = await Ticket.findOne(ticketId);  
       const newComment = await Comment.create({comment, ticket, user}).save();
       return newComment;
+    }
+
+    @Authorized("admin")
+    @Delete('/comments/:id')
+    async deleteComment(
+        @Param('id') id: number
+    ) {
+        return Comment.delete(id)
     }
 }

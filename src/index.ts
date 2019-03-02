@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import {createKoaServer, BadRequestError} from 'routing-controllers'
+import {createKoaServer} from 'routing-controllers'
 import setupDb from './db'
 import UserController from './users/controller'
 import LoginController from './logins/controller'
@@ -20,18 +20,36 @@ const app = createKoaServer({
     TicketController,
     CommentController
   ],
-  authorizationChecker: (action: Action) => {
-    const header: string = action.request.headers.authorization
+  authorizationChecker: async (action: Action, roles: string[]) => {
+    const header: string = action.request.headers.authorization;
+
     if (header && header.startsWith('Bearer ')) {
-      const [ , token ] = header.split(' ')
-      try {
-        return !!(token && verify(token))
+      const [, token] = header.split(' ');
+      if(token) {
+        const userId = verify(token).data.id
+        const user = await User.findOne(userId)
+          //https://github.com/typestack/routing-controllers#authorized-decorator
+        if(user && !roles.length) 
+          return true
+        if (user && roles.find(roles => user.roles.indexOf(roles) !== -1))
+          return true;
+
       }
-      catch (e) {
-        throw new BadRequestError(e)
-      }    }
-    return false
+    }
+    return false;
   },
+  // authorizationChecker: (action: Action) => {
+  //   const header: string = action.request.headers.authorization
+  //   if (header && header.startsWith('Bearer ')) {
+  //     const [ , token ] = header.split(' ')
+  //     try {
+  //       return !!(token && verify(token))
+  //     }
+  //     catch (e) {
+  //       throw new BadRequestError(e)
+  //     }    }
+  //   return false
+  // },
   currentUserChecker: async (action: Action) => {
     const header: string = action.request.headers.authorization
     if (header && header.startsWith('Bearer ')) {

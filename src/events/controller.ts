@@ -1,4 +1,4 @@
-import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser } from 'routing-controllers'
+import { JsonController, Get, Param, Body, Post, HttpCode, Put, NotFoundError, CurrentUser, Authorized, Delete } from 'routing-controllers'
 import Event from './entity'
 import User from '../users/entity'
 // import {MoreThan} from "typeorm"
@@ -22,7 +22,7 @@ export default class EventController {
         return { events }
     }
 
-    // @Authorized()
+    @Authorized("admin")
     @Post('/events')
     @HttpCode(201)
     async createEvent(
@@ -44,7 +44,7 @@ export default class EventController {
         return Event.findOne(id)
     }
 
-    // @Authorized()
+    @Authorized("admin")
     @Put('/events/:id')
     async updateEvent(
         @Param('id') id: number,
@@ -54,6 +54,14 @@ export default class EventController {
         if (!event) throw new NotFoundError('Cannot find event')
 
         return Event.merge(event, update).save()
+    }
+
+    @Authorized("admin")
+    @Delete('/events/:id')
+    async deleteEvent(
+        @Param('id') id: number
+    ) {
+        return Event.delete(id)
     }
 
 }

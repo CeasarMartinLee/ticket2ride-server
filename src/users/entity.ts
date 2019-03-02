@@ -24,6 +24,9 @@ export default class User extends BaseEntity {
     @Column('text', { nullable: false })
     lastName: string
 
+    @Column('text', { default: 'customer' })
+    roles: string
+
     @IsEmail()
     @Column('text', { nullable: false })
     email: string

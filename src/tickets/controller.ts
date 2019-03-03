@@ -31,10 +31,11 @@ export default class TicketController {
         @CurrentUser() user: User,
         @Body() ticket: Ticket
     ) {
-        let { price, description, picture, risk, dateCreated } = ticket;
+        let { price, description, picture, risk, dateCreated, address, latitude, longitude } = ticket;
         dateCreated = new Date()
+        console.log(ticket, 'ticket<==========================')
         const event = await Event.findOne(eventId);
-        const newTicket = await Ticket.create({ description, price, picture, event, user, dateCreated, risk }).save()
+        const newTicket = await Ticket.create({ description, price, picture, event, user, dateCreated, risk, address, latitude, longitude }).save()
         const allTickets = await Ticket.find({ relations: ['user'] })
         const userId = newTicket!.user.id
 

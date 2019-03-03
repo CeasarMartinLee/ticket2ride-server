@@ -30,6 +30,16 @@ export default class Ticket extends BaseEntity {
   @Column('decimal', { nullable: true, scale: 2, default: 0 })
   risk: number
 
+  @IsString()
+  @Column('text', { nullable: true })
+  address: string
+
+  @Column('text', { nullable: true })
+  latitude: number
+
+  @Column('text', { nullable: true })
+  longitude: number
+
   @ManyToOne(_ => User, user => user.tickets)
   user: User;
 
